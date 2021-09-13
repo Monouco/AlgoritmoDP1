@@ -56,11 +56,11 @@ public class Ant {
         this.solution.add(pos);
     }
 
-    public int getLastSolution(){
+    public int getLastSolution(int numAlmacen){
         int last;
         int size = this.solution.size();
         if(size == 0)
-            last = -1;
+            last = -1-numAlmacen;
         else
             last = this.solution.get(size - 1);
         return last;
@@ -167,9 +167,13 @@ public class Ant {
 
     }
 
-    public double calcFitness(int numOrders){
+    public double calcFitness(){
         //Calcular mejor fitness
-        double fitnessCur = solution.size()/numOrders ;
+        double fitnessCur = 0 ;
+        double sizeSolution = route.size();
+        if(sizeSolution != 0){
+            fitnessCur = 1/sizeSolution;
+        }
         return fitnessCur;
     }
 
