@@ -3,6 +3,13 @@
   <component name="NewModuleRootManager" inherit-compiler-output="true">
     <exclude-output />
     <content url="file://$MODULE_DIR$">
+      <sourceFolder url="file://$MODULE_DIR$" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/.idea" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/out" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/out/production/ACS Implementation" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/out/production/ACS Implementation/.idea" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/out/production/ACS Implementation/Main" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/out/production/ACS Implementation/Models" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/src" isTestSource="false" />
     </content>
     <orderEntry type="inheritedJdk" />
