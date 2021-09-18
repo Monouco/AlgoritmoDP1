@@ -185,4 +185,16 @@ public class Ant {
         }
     }
 
+    public void clearSolution(){
+        this.solution = new ArrayList<>();
+        this.route = new ArrayList<>();
+    }
+
+    public void printSolution(Map map, char car){
+        Map solMap = new Map(map);
+        solMap.insertSolution(this,car);
+        solMap.printMap();
+
+    }
+
 }

@@ -2,9 +2,6 @@ package Models;
 
 import java.io.BufferedReader;
 import java.io.FileReader;
-import java.lang.reflect.Array;
-import java.util.ArrayList;
-import java.io.*;
 
 public class Map {
     private char [][] map;
@@ -16,6 +13,15 @@ public class Map {
         this.height = height;
         this.width = width;
         this.map = new char [height][width];
+        this.initializeMap();
+    }
+
+    public Map(Map mapa) {
+        this.map = new char[mapa.getHeight()][mapa.getWidth()];
+
+        this.setHeight(mapa.getHeight());
+        this.setWidth(mapa.getWidth());
+        this.setPlantaPrincipal(mapa.getPlantaPrincipal());
         this.initializeMap();
     }
 

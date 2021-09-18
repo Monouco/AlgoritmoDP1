@@ -1,6 +1,6 @@
 package Main;
+
 import Models.Ant;
-import Models.Client;
 import Models.Map;
 import Models.Order;
 
@@ -18,8 +18,8 @@ public class Main {
         //Leer mapa
         System.out.println("");
         //mapa1.readRoadblocksFromFile("D:\\other things\\dp1\\ACS Implementation\\bloqueos.txt");
-        System.out.println("MAPA BLOQUEADO");
-        mapa1.printMap();
+        //System.out.println("MAPA BLOQUEADO");
+        //mapa1.printMap();
         //Otros parametros
         int numAlmacenes = 1;
         double [][] pheromone;
@@ -29,7 +29,7 @@ public class Main {
         //Conseguimos la cantidad de ordenes
         orders = new ArrayList<>();
         //Leer pedidos
-        orders = readOrdersFromFile("D:\\other things\\dp1\\ACS Implementation\\pedidos.txt");
+        orders = readOrdersFromFile("C:\\Users\\leo\\Desktop\\loe\\2021-2\\DP1\\AlgoritmoDP1\\ACS Implementation\\pedidos.txt");
         numOrders = orders.size();
 
         //Inicializamos la feromona
@@ -46,19 +46,29 @@ public class Main {
          */
 
         //Definicion de otros parametros
-        int k = 2; //numero de hormigas de la colonia
+        int k; //numero de hormigas de la colonia
+        int tipoa = 2;
+        int tipob = 4;
+        k = tipoa + tipob;
         int steps = numOrders*3/2; //numero de ciclos en los que se calcularan las rutas
-        int cycles = 200;
+        int cycles = 2000;
 
         //Inicializamos la flota
-        ArrayList<Ant> camiones = new ArrayList<>();
+        ArrayList<Ant> camiones = new ArrayList<Ant>();
 
-        for(int i=0; i<k; i++){
+        //CAMIONES TIPO A
+        for(int i=0; i<tipoa; i++){
             //Inicializamos con valores fijos para todos
             Ant camion = new Ant(25, 25, 25/150, mapa1.getPlantaPrincipal()[0], mapa1.getPlantaPrincipal()[1], 30);
             camiones.add(camion);
         }
 
+        //CAMIONES TIPO B
+        for(int i=0; i<tipob; i++){
+            //Inicializamos con valores fijos para todos
+            Ant camion = new Ant(15, 25, 25/150, mapa1.getPlantaPrincipal()[0], mapa1.getPlantaPrincipal()[1], 30);
+            camiones.add(camion);
+        }
 
         int siguienteOrden = 0;
         int ordenAnterior = 0;
@@ -212,12 +222,14 @@ public class Main {
                 updatePheromone(pheromone, 1, numOrders, bestFit, camiones.get(bestAnt),numAlmacenes);
             }
 
-            //Cambiando a mejor solucion
-            if(fitnessTemp > globalFitness){
-                //Cambiando la mejor solucion de todos los camiones
-                for(int l = 0; l < k; l++){
+
+            //Cambiando la mejor solucion de todos los camiones
+            for(int l = 0; l < k; l++){
+                //Cambiando a mejor solucion
+                if(fitnessTemp > globalFitness){
                     camiones.get(l).changeSolution();
                 }
+                camiones.get(l).clearSolution();
             }
 
         }
@@ -240,8 +252,9 @@ public class Main {
                 System.out.print("(" + x[0] + "," + x[1] + ") -> ");
             }
             System.out.println(" |");
-            mapa1.insertSolution(camion, (char) (l + '@'));
-            mapa1.printMap();
+            camion.printSolution(mapa1,(char) (l + '@') );
+            //mapa1.insertSolution(camion, (char) (l + '@'));
+            //mapa1.printMap();
 
         }
 
