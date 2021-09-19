@@ -52,11 +52,11 @@ public class Main {
 
         //Definicion de otros parametros
         int k; //numero de hormigas de la colonia
-        int tipoa = 2;
-        int tipob = 4;
+        int tipoa = 10;
+        int tipob = 10;
         k = tipoa + tipob;
         int steps = numOrders*3/2; //numero de ciclos en los que se calcularan las rutas
-        int cycles = 2000;
+        int cycles = 50;
 
         //Inicializamos la flota
         ArrayList<Ant> camiones = new ArrayList<Ant>();

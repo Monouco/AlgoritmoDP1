@@ -34,6 +34,7 @@ public class ACSAlgorithm {
         double globalFitness = 0.0, bestFit, reservaActual;
         double [] reservas;
         double[] pedidos;
+        AstarSearch aStar = new AstarSearch(mapa1);
         //Procedimiento ciclico
         for (int i = 0; i < cycles; i++) {
             //ponemos el glp aca
@@ -144,7 +145,8 @@ public class ACSAlgorithm {
 
                     //Calculo de Manhattan
                     //Recordar hacer esto con A*
-                    ruta = manhattanPath(xIni, yIni, xDes, yDes);
+                    //ruta = manhattanPath(xIni, yIni, xDes, yDes);
+                    ruta = aStar.astar_search(new int[]{xIni,yIni}, new int[]{xDes,yDes});
                     //Calculamos el costo de petroleo por hacer esta ruta
                     coordenate = new int[3];
                     coordenate[0] = ruta.get(0)[0];
