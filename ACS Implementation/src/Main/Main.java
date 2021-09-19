@@ -33,7 +33,8 @@ public class Main {
         //Conseguimos la cantidad de ordenes
         orders = new ArrayList<>();
         //Leer pedidos
-        orders = readOrdersFromFile("C:\\Users\\leo\\Desktop\\loe\\2021-2\\DP1\\AlgoritmoDP1\\ACS Implementation\\pedidos.txt");
+        //orders = readOrdersFromFile("C:\\Users\\leo\\Desktop\\loe\\2021-2\\DP1\\AlgoritmoDP1\\ACS Implementation\\pedidos.txt");
+        orders = readOrdersFromFile("D:\\other things\\dp1\\AlgoritmoDP1\\ACS Implementation\\pedidos.txt");
         numOrders = orders.size();
 
         //Inicializamos la feromona
@@ -63,14 +64,14 @@ public class Main {
         //CAMIONES TIPO A
         for(int i=0; i<tipoa; i++){
             //Inicializamos con valores fijos para todos
-            Ant camion = new Ant(25, 25,  mapa1.getPlantaPrincipal()[0], mapa1.getPlantaPrincipal()[1], 30, 2.5, 12.5);
+            Ant camion = new Ant(25, 25,  mapa1.getPlantaPrincipal()[0], mapa1.getPlantaPrincipal()[1], 50, 2.5, 12.5);
             camiones.add(camion);
         }
 
         //CAMIONES TIPO B
         for(int i=0; i<tipob; i++){
             //Inicializamos con valores fijos para todos
-            Ant camion = new Ant(15, 25,  mapa1.getPlantaPrincipal()[0], mapa1.getPlantaPrincipal()[1], 30, 2, 7.5);
+            Ant camion = new Ant(15, 25,  mapa1.getPlantaPrincipal()[0], mapa1.getPlantaPrincipal()[1], 50, 2, 7.5);
             camiones.add(camion);
         }
 
@@ -88,7 +89,7 @@ public class Main {
         ArrayList<Ant> secuencia = solucion.findSolution(camiones, orders, mapa1, cycles, steps, k, 0.3);
 
         for(int l = 0; l < k; l++){
-            camion = camiones.get(l);
+            camion = secuencia.get(l);
             System.out.println("Camion: "+ l);
             for (int pedido:
                     camion.getBestSolution()

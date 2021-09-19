@@ -171,9 +171,11 @@ public class Ant {
     public void changeSolution(){
         bestRoute = route;
         bestSolution = solution;
+        bestSolutionGLP = solutionGLP;
         //Limpiando el actual
         route = new ArrayList<>();
         solution = new ArrayList<>();
+        solutionGLP = new ArrayList<>();
 
     }
 
@@ -205,6 +207,7 @@ public class Ant {
     public void clearSolution(){
         this.solution = new ArrayList<>();
         this.route = new ArrayList<>();
+        this.solutionGLP = new ArrayList<>();
     }
 
     public void printSolution(Map map, char car){

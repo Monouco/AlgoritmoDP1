@@ -131,7 +131,7 @@ public class ACSAlgorithm {
                             camion.addRoute(coordenate);
                         }
                         else{//esta en un deposito
-                            deposito = depositos.get(siguienteOrden + numAlmacenes);
+                            deposito = depositos.get(ordenAnterior + numAlmacenes);
                             xIni = deposito.getxPos();
                             yIni = deposito.getyPos();
                         }
@@ -152,6 +152,7 @@ public class ACSAlgorithm {
                     coordenate[2] = ordenAnterior;
 
                     ruta.set(0,coordenate);
+                    camion.calcCost(ruta.size());
                     camion.addRoute(ruta);
                     //camiones.set(l,camion);
                 }
@@ -318,7 +319,7 @@ public class ACSAlgorithm {
 
         pheromoneCur = pheromone[last + numAlmacenes][ordenPedido + numAlmacenes];
 
-        prob = 2 * 1 / tiempoRestante + 1 / manhattan + pheromoneCur;
+        prob = (double) 2* 1 / tiempoRestante + (double) 1 / manhattan + pheromoneCur;
 
         return prob;
     }
@@ -377,7 +378,7 @@ public class ACSAlgorithm {
 
         pheromoneCur = pheromone[last + numAlmacenes][m + numAlmacenes];
 
-        prob = 1 / manhattan + pheromoneCur;
+        prob = (double) 1/ manhattan + pheromoneCur;
 
         return prob;
     }
