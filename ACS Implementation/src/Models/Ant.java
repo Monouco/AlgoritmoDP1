@@ -6,8 +6,10 @@ import java.util.ArrayList;
 public class Ant {
 
     private ArrayList<Integer> solution;
+    private ArrayList<Double> solutionGLP;
     private ArrayList<int[]> route;
     private ArrayList<Integer> bestSolution;
+    private ArrayList<Double> bestSolutionGLP;
     private ArrayList<int[]> bestRoute;
     private double capacity;
     private double usedCapacity;
@@ -18,22 +20,30 @@ public class Ant {
     private int yPos;
     private double velocity;
     private boolean malfunction;
+    private double antWeight;
+    private double glpWeight;
+    private double fuelPrev;
 
-    public Ant (double capacity, double fuelCapacity, double fuelConsumption, int xPos, int yPos, double velocity){
+    public Ant (double capacity, double fuelCapacity, int xPos, int yPos, double velocity, double antWeight, double glpWeight){
         solution = new ArrayList<>();
         bestSolution = new ArrayList<>();
         route = new ArrayList<>();
         bestRoute = new ArrayList<>();
+        solutionGLP = new ArrayList<>();
+        bestSolutionGLP = new ArrayList<>();
         this.capacity = capacity;
         //El camion sale con el tanque lleno
         this.usedCapacity = capacity;
         this.fuelCapacity = fuelCapacity;
         this.fuel = fuelCapacity;
-        this.fuelConsumption = fuelConsumption;
+        this.fuelConsumption = 0;
         this.xPos = xPos;
         this.yPos = yPos;
         this.velocity = velocity;
         this.malfunction = false;
+        this.antWeight = antWeight;
+        this.glpWeight = glpWeight;
+        this.fuelPrev = 0;
     }
 
     public ArrayList<Integer> getSolution() {
@@ -170,9 +180,16 @@ public class Ant {
     public double calcFitness(){
         //Calcular mejor fitness
         double fitnessCur = 0 ;
+        int numCl = numClients();
+        //No usaremos el tamaño de la ruta, sino la cantidad de petroleo gastado
         double sizeSolution = route.size();
         if(sizeSolution != 0){
-            fitnessCur = 1/sizeSolution;
+            //fitnessCur = 1/sizeSolution;
+            fitnessCur = numCl*this.fuelCapacity/2 - this.fuelConsumption;
+            if(fitnessCur<0){
+                //Evitamos que haya fitness negativo
+                fitnessCur = -1/fitnessCur;
+            }
         }
         return fitnessCur;
     }
@@ -195,6 +212,117 @@ public class Ant {
         solMap.insertSolution(this,car);
         solMap.printMap();
 
+    }
+
+    public ArrayList<Double> getSolutionGLP() {
+        return solutionGLP;
+    }
+
+    public void setSolutionGLP(ArrayList<Double> solutionGLP) {
+        this.solutionGLP = solutionGLP;
+    }
+
+    public ArrayList<Double> getBestSolutionGLP() {
+        return bestSolutionGLP;
+    }
+
+    public void setBestSolutionGLP(ArrayList<Double> bestSolutionGLP) {
+        this.bestSolutionGLP = bestSolutionGLP;
+    }
+
+    public void addSolutionGLP(double glp){
+        this.solutionGLP.add(glp);
+    }
+
+    public void calcCost(int size){
+        double consumption = calcFuelConsumption(size);
+
+        this.fuel -= consumption;
+        this.fuelConsumption += consumption;
+
+    }
+
+    private double calcFuelConsumption(int size){
+        int solSize = solutionGLP.size();
+        double consumption;
+        if(solSize > 0){
+            consumption = size * //distancia recorrida
+                    (antWeight + (glpWeight/capacity) //peso actual del camion
+                            * solutionGLP.get(solSize-1))/150;
+        }
+        else{
+            consumption = size * //distancia recorrida
+                    (antWeight + (glpWeight/capacity) //peso actual del camion
+                            * capacity)/150; //tomaremos como que el camion sale con el tanque lleno
+        }
+        return consumption;
+    }
+
+    private int numClients(){
+        int numCl = 0;
+        for (int c:
+             this.solution) {
+            if(c >=0) numCl++;
+        }
+        return numCl;
+    }
+
+    public boolean tryOrder(int size){
+        double consumption = calcFuelConsumption(size);
+        if (fuel - consumption > 0)
+            return true;//es posible
+        return false;
+    }
+
+    public double deleteLast(){
+        int size = solution.size();
+        int lastOrd;
+        int [] lastCoor;
+        int solDist = route.size();
+        double consumption;
+        int dist = 0;
+        double glp;
+        //no hay que eliminar
+        if(size == 0)
+            return 0;
+        //quitamos la ultima solucion
+        lastOrd = solution.remove(size-1);
+        //Tenemos con cuanto fuimos
+        glp = solutionGLP.remove(size-1);
+        //volvemos a asignar el glp al de antes
+        usedCapacity = glp;
+        fuel = fuelPrev;
+        while(solDist > 0){
+            lastCoor = route.remove(solDist - 1);
+            dist++;
+            //Si se encontro el primer elemento agregado por la nueva ruta
+            if(lastCoor.length == 3)
+                break;
+            solDist--;
+        }
+
+        consumption = calcFuelConsumption(dist);
+        fuelConsumption -= consumption;
+
+        return this.capacity - glp;
+
+    }
+
+    public double refill(double available){
+        double leftGLP;
+        double required = this.capacity - this.usedCapacity;
+        this.fuelPrev = this.fuel;
+        this.fuel = this.fuelCapacity;
+        if(available > required) {
+            leftGLP = available - required;
+            this.usedCapacity = this.capacity;
+        }
+        else{
+            this.usedCapacity = this.usedCapacity + available;
+            leftGLP = 0;
+        }
+
+        return leftGLP;
     }
 
 }

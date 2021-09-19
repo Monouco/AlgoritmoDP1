@@ -1,8 +1,10 @@
 package Main;
 
 import Models.Ant;
+import Models.DepositGLP;
 import Models.Map;
 import Models.Order;
+import Solutions.ACSAlgorithm;
 
 import java.io.BufferedReader;
 import java.io.FileReader;
@@ -14,6 +16,8 @@ public class Main {
 
         //Lectura de archivo e inicializacion del mapa
         Map mapa1 = new Map(50, 70);
+        DepositGLP principal = new DepositGLP(10, 8, 100);
+        mapa1.addDeposit(principal);
 
         //Leer mapa
         System.out.println("");
@@ -36,7 +40,7 @@ public class Main {
         //System.out.println(pheromone[0][0]);
 
         //Considerando los almacenes dentro de la feromona
-        pheromone = new double[numOrders + numAlmacenes][numOrders + numAlmacenes];
+        //pheromone = new double[numOrders + numAlmacenes][numOrders + numAlmacenes];
 
         /*
         ##################################################################
@@ -59,182 +63,29 @@ public class Main {
         //CAMIONES TIPO A
         for(int i=0; i<tipoa; i++){
             //Inicializamos con valores fijos para todos
-            Ant camion = new Ant(25, 25, 25/150, mapa1.getPlantaPrincipal()[0], mapa1.getPlantaPrincipal()[1], 30);
+            Ant camion = new Ant(25, 25,  mapa1.getPlantaPrincipal()[0], mapa1.getPlantaPrincipal()[1], 30, 2.5, 12.5);
             camiones.add(camion);
         }
 
         //CAMIONES TIPO B
         for(int i=0; i<tipob; i++){
             //Inicializamos con valores fijos para todos
-            Ant camion = new Ant(15, 25, 25/150, mapa1.getPlantaPrincipal()[0], mapa1.getPlantaPrincipal()[1], 30);
+            Ant camion = new Ant(15, 25,  mapa1.getPlantaPrincipal()[0], mapa1.getPlantaPrincipal()[1], 30, 2, 7.5);
             camiones.add(camion);
         }
 
-        int siguienteOrden = 0;
-        int ordenAnterior = 0;
-        int numAtendidos = 0;
 
         int bestAnt;
         double bestFit;
         //Probar despues con las n mejores hormigas por ciclo
         //int nBest = (int) Math.ceil((double) k/2);
 
-        int xIni, xDes, yIni, yDes;
-        int [] coordenate;
-        ArrayList<int []> ruta = new ArrayList<>();
-        double glpDisponible = 0;
-        double fitnessTemp, fitnessCur;
-        int highestNum = 0;
-        Order lastOrden = null;
-        Order curOrden = null;
-        Ant camion = null;
-        double globalFitness = 0.0;
-        //Procedimiento ciclico
-        for(int i = 0; i < cycles; i++){
-            //falta ordenar
-            ArrayList<Order> ordenes = (ArrayList<Order>) orders.clone();
-            //ponemos el glp aca
-            double [] pedidos = new double[numOrders];
-            for(int n = 0; n < numOrders; n++){
-                pedidos[n] = ordenes.get(n).getGlp();
-            }
+        Ant camion = camiones.get(0);
+        int [] plantaPrincipal = mapa1.getPlantaPrincipal();
+        ACSAlgorithm solucion = new ACSAlgorithm(numAlmacenes, numOrders, plantaPrincipal);
+        //System.out.println("Pedidos atendidos: "+ highestNum);
 
-            numAtendidos = 0;
-
-            //Armamos las soluciones por pasos
-            for(int j = 0; j < steps; j++){
-                //Por cada una de las hormigas
-                for(int l = 0; l < k; l++){
-                    //Si ya se atendieron todos los pedidos
-                    if(numAtendidos == numOrders) break;
-
-                    camion = camiones.get(l);
-
-                    glpDisponible = camion.getUsedCapacity();
-                    //Aca va lo de las 8 horas
-                    if(glpDisponible == 0.0) continue;
-
-                    siguienteOrden = getNextOrder(camion, pheromone, ordenes, numOrders, pedidos, numAlmacenes, mapa1);
-
-                    //Esto es el colapso logistico
-                    if(siguienteOrden == -1) continue;
-
-                    //Se aumenta la ruta
-                    ordenAnterior = camion.getLastSolution(numAlmacenes);
-
-                    camion.addSolution(siguienteOrden);
-
-                    if(pedidos[siguienteOrden] <= glpDisponible){
-                        camion.setUsedCapacity(glpDisponible - pedidos[siguienteOrden]);
-                        pedidos[siguienteOrden] = 0;
-                    }
-                    else{
-                        pedidos[siguienteOrden] -= glpDisponible;
-                        camion.setUsedCapacity(0);
-                    }
-                    if(pedidos[siguienteOrden] == 0.0) numAtendidos++;
-                    curOrden = ordenes.get(siguienteOrden);
-
-                    if(ordenAnterior < 0){
-                        xIni = camion.getxPos();
-                        yIni = camion.getyPos();
-                        coordenate = new int[2];
-                        coordenate[0] = xIni;
-                        coordenate[1] = yIni;
-                        camion.addRoute(coordenate);
-                    }
-                    else{
-                        lastOrden = ordenes.get(ordenAnterior);
-                        xIni = lastOrden.getDesX();
-                        yIni = lastOrden.getDesY();
-                    }
-                    xDes = curOrden.getDesX();
-                    yDes = curOrden.getDesY();
-                    //Calculo de Manhattan
-                    //Recordar hacer esto con A*
-                    ruta = manhattanPath(xIni,yIni,xDes,yDes);
-                    camion.addRoute(ruta);
-                    //camiones.set(l,camion);
-                }
-                // Se atendieron todos los pedidos
-                if(numAtendidos == numOrders) break;
-            }
-
-            fitnessTemp = 0;
-            fitnessCur = 0;
-            bestAnt = 0;
-            bestFit = 0;
-            //En otro momento hare lo de la wea de A*
-            for(int l = 0; l < k; l++){
-                camion = camiones.get(l);
-                ordenAnterior = camion.getLastSolution(numAlmacenes);
-                if(ordenAnterior < 0){
-                    if(ordenAnterior == -1-numAlmacenes){
-                        xIni = camion.getxPos();
-                        yIni = camion.getyPos();
-                        coordenate = new int[2];
-                        coordenate[0] = xIni;
-                        coordenate[1] = yIni;
-                        camion.addRoute(coordenate);
-                    }
-                    else{
-                        //Se encuentra en una planta, verificar
-                        xIni = mapa1.getPlantaPrincipal()[0];
-                        yIni = mapa1.getPlantaPrincipal()[1];
-                    }
-                }
-                else{
-                    lastOrden = ordenes.get(ordenAnterior);
-                    xIni = lastOrden.getDesX();
-                    yIni = lastOrden.getDesY();
-                }
-                //Posiciones del almacen principal
-                xDes = mapa1.getPlantaPrincipal()[0];
-                yDes = mapa1.getPlantaPrincipal()[1];
-                ruta = manhattanPath(xIni,yIni,xDes,yDes);
-                camion.addRoute(ruta);
-
-                //calculando fitnessGlobal
-                fitnessCur = camion.calcFitness();
-                fitnessTemp = fitnessTemp + fitnessCur;
-                //System.out.println("Para el camion "+l+" en it "+i+" el fitness: "+fitnessTemp);
-
-                //Aca guardamos a la mejor hormiga, pero opino que deberiamos tener las n mejores hormigas
-                if(fitnessCur > bestFit){
-                    bestAnt = l;
-                    bestFit = fitnessCur;
-                }
-
-                //Recordar este cambio para el momento en que se tengan que agregar pedidos espontaneos
-                camion.setUsedCapacity(camion.getCapacity());
-
-            }
-
-            if(numAtendidos != numOrders){
-                //Es solucion inviable y colapso logistico
-                fitnessTemp = -1;
-                bestFit = -1;
-            }
-
-            //Actualizamos la feromona
-            if(bestFit >= 0){
-                highestNum = numOrders;
-                updatePheromone(pheromone, 1, numOrders, bestFit, camiones.get(bestAnt),numAlmacenes);
-            }
-
-
-            //Cambiando la mejor solucion de todos los camiones
-            for(int l = 0; l < k; l++){
-                //Cambiando a mejor solucion
-                if(fitnessTemp > globalFitness){
-                    camiones.get(l).changeSolution();
-                }
-                camiones.get(l).clearSolution();
-            }
-
-        }
-
-        System.out.println("Pedidos atendidos: "+ highestNum);
+        ArrayList<Ant> secuencia = solucion.findSolution(camiones, orders, mapa1, cycles, steps, k, 0.3);
 
         for(int l = 0; l < k; l++){
             camion = camiones.get(l);
@@ -262,137 +113,7 @@ public class Main {
 
     }
 
-    private static int getNextOrder(Ant camion, double[][] pheromone, ArrayList<Order> ordenes, int numOrders, double[] pedidos, int numAlmacenes, Map mapa){
-        double prob = 0.0;
-        double chosen = 0.0;
-        double sum = 0.0;
-        int next = -1;
-        double [] probabilidades = new double [numOrders];
-        int camino = camion.getRoute().size();
-        double tiempoActual = ( ( (camino == 0 ) ? 1 : camino) - 1) / camion.getVelocity();
-        //calculando las probabilidades de todos
-        for(int m = 0; m < numOrders; m++){
-            //pedido atendido
-            if(pedidos[m] == 0.0 || camion.getLastSolution(numAlmacenes) == m)
-                probabilidades[m]=0;
-            else
-                //pedido no atendido, evaluar
-                probabilidades[m] = calcProb(camion, ordenes, m, pheromone, tiempoActual, numAlmacenes, mapa); // atractividad + feromona
-            sum += probabilidades[m];
-        }
 
-        chosen = Math.random();
-
-        for(int m = 0; m < numOrders; m++){
-            //normalizando y hallando la verdadera probabilidad
-            prob += (probabilidades[m])/sum;
-            if(chosen < prob){
-                next = m;
-                break;
-            }
-
-        }
-
-        return next;
-    }
-
-    private static double calcProb(Ant camion, ArrayList<Order> ordenes, int ordenPedido, double [][] pheromone, double tiempoActual, int numAlmacenes, Map mapa){
-        double atractividad = 0;
-        double pheromoneCur;
-        double prob = 0;
-        //Calculando atractividad
-        int last = camion.getLastSolution(numAlmacenes);
-        Order pedido = ordenes.get(ordenPedido);
-        Order pedidoAnt = null;
-        int manhattan = 0;
-        int coor [] = new int[2];
-        double tiempoRestante = 0;
-        //No olvidar inicializar localizacion del camion
-        if(last <= -1){
-            if(last == -1-numAlmacenes)
-                last++;
-            //Cambiar metodo para obtener el almacen actual
-            coor = mapa.getPlantaPrincipal();
-            //x = posX almacen actual, y = posY almacen actual
-            manhattan = Math.abs(coor[0] - pedido.getDesX()) + Math.abs(coor[1] - pedido.getDesY());
-        }
-        else{
-            pedidoAnt = ordenes.get(last);
-            manhattan = Math.abs(pedidoAnt.getDesX() - pedido.getDesX()) + Math.abs(pedidoAnt.getDesY() - pedido.getDesY());
-
-        }
-
-        //Calculo temporal
-        tiempoRestante = pedido.getDeadLine() - tiempoActual;
-        //Si sale negativo, inviable
-        if(tiempoRestante <= 0){
-            return 0;
-        }
-
-        //Analizar el caso xd
-        if(manhattan == 0) return 0;
-
-        pheromoneCur = pheromone[last + numAlmacenes][ordenPedido + numAlmacenes];
-
-        prob = 2 * 1 / tiempoRestante + 1 / manhattan + pheromoneCur;
-
-        return prob;
-    }
-
-    private static ArrayList<int[]> manhattanPath(int xIni, int yIni, int xDes, int yDes){
-        ArrayList<int[]> ruta = new ArrayList<>();
-        int [] nodo = {xIni,yIni};
-        int xTemp, yTemp;
-        for(int i=0; Math.abs(i) < Math.abs(xDes - xIni);){
-            if(xIni<xDes){
-                i++;
-            }
-            else{
-                i--;
-            }
-            nodo = new int[2];
-            nodo[0] = xIni+i;
-            nodo[1] = yIni;
-            ruta.add(nodo);
-
-        }
-        xTemp = nodo[0];
-        yTemp = nodo[1];
-        for(int i=0; Math.abs(i) < Math.abs(yDes - yTemp);){
-            if(yTemp<yDes){
-                i++;
-            }
-            else{
-                i--;
-            }
-            nodo = new int[2];
-            nodo[0] = xTemp;
-            nodo[1] = yTemp + i;
-            ruta.add(nodo);
-
-        }
-
-        return ruta;
-
-    }
-
-    private static void updatePheromone(double pheromone[][], double evaporationRate, int numOrders, double fitness, Ant bestAnt, int numAlmacenes){
-        int x = -100;
-        //(1-P)*Fitness + fitness
-        for (int p:
-                bestAnt.getSolution()
-             ) {
-            //Si es el primer elemento del arreglo, x se tiene que cambiar
-            if(x == -100){
-                x = p;
-            }
-            else{
-                //Se calcula la feromona
-                pheromone[x+numAlmacenes][p+numAlmacenes] = (1-evaporationRate) * pheromone[x+numAlmacenes][p+numAlmacenes] + fitness;
-                x = p;
-            }
-        }
-    }
 
     private static Order parseOrder(String line){
         Order or = new Order();

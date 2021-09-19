@@ -2,18 +2,21 @@ package Models;
 
 import java.io.BufferedReader;
 import java.io.FileReader;
+import java.util.ArrayList;
 
 public class Map {
     private char [][] map;
     private int height;
     private int width;
     private int [] plantaPrincipal={10,8};
+    private ArrayList<DepositGLP> deposits;
 
     public Map(int height, int width) {
         this.height = height;
         this.width = width;
         this.map = new char [height][width];
         this.initializeMap();
+        this.deposits = new ArrayList<>();
     }
 
     public Map(Map mapa) {
@@ -52,6 +55,18 @@ public class Map {
 
     public void setPlantaPrincipal(int[] plantaPrincipal) {
         this.plantaPrincipal = plantaPrincipal;
+    }
+
+    public ArrayList<DepositGLP> getDeposits() {
+        return deposits;
+    }
+
+    public void setDeposits(ArrayList<DepositGLP> deposits) {
+        this.deposits = deposits;
+    }
+
+    public void addDeposit(DepositGLP deposit){
+        deposits.add(deposit);
     }
 
     //Inicializa el mapa como nodos disponibles
