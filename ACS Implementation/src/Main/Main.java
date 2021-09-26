@@ -7,17 +7,32 @@ import Models.Order;
 import Solutions.ACSAlgorithm;
 
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.FileReader;
 import java.util.ArrayList;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.lang.Math;
 
-public class Main {
-    public static void main(String[] args) {
 
+public class Main {
+    public static void main(String[] args) throws IOException {
+
+        //time
+        long start, end;
         //Lectura de archivo e inicializacion del mapa
         Map mapa1 = new Map(50, 70);
         DepositGLP principal = new DepositGLP(10, 8, 100);
+        DepositGLP almacenNorte = new DepositGLP(40, 45, 160);
+        DepositGLP alamacenEste = new DepositGLP(60, 5, 160);
+
         mapa1.addDeposit(principal);
+        mapa1.addDeposit(almacenNorte);
+        mapa1.addDeposit(alamacenEste);
+
+
+        //Creando archivos para guardar los datos
+        FileWriter data = new FileWriter("D:\\other things\\dp1\\AlgoritmoDP1\\ACS Implementation\\datosACO.csv");
 
         //Leer mapa
         System.out.println("");
@@ -25,8 +40,7 @@ public class Main {
         //System.out.println("MAPA BLOQUEADO");
         //mapa1.printMap();
         //Otros parametros
-        int numAlmacenes = 1;
-        double [][] pheromone;
+        int numAlmacenes = 3;
         ArrayList<Order> orders;
         int numOrders = 0;
 
@@ -34,7 +48,7 @@ public class Main {
         orders = new ArrayList<>();
         //Leer pedidos
         //orders = readOrdersFromFile("C:\\Users\\leo\\Desktop\\loe\\2021-2\\DP1\\AlgoritmoDP1\\ACS Implementation\\pedidos.txt");
-        orders = readOrdersFromFile("D:\\other things\\dp1\\AlgoritmoDP1\\ACS Implementation\\pedidos.txt");
+        orders = readOrdersFromFile("D:\\other things\\dp1\\AlgoritmoDP1\\ACS Implementation\\orders.txt");
         numOrders = orders.size();
 
         //Inicializamos la feromona
@@ -52,11 +66,13 @@ public class Main {
 
         //Definicion de otros parametros
         int k; //numero de hormigas de la colonia
-        int tipoa = 10;
-        int tipob = 10;
-        k = tipoa + tipob;
+        int tipoa = 2;
+        int tipob = 4;
+        int tipoc = 4;
+        int tipod = 10;
+        k = tipoa + tipob + tipoc + tipod;
         int steps = numOrders*3/2; //numero de ciclos en los que se calcularan las rutas
-        int cycles = 50;
+        int cycles = 200;
 
         //Inicializamos la flota
         ArrayList<Ant> camiones = new ArrayList<Ant>();
@@ -75,18 +91,32 @@ public class Main {
             camiones.add(camion);
         }
 
+        //CAMIONES TIPO C
+        for(int i=0; i<tipoc; i++){
+            //Inicializamos con valores fijos para todos
+            Ant camion = new Ant(10, 25,  mapa1.getPlantaPrincipal()[0], mapa1.getPlantaPrincipal()[1], 50, 1.5, 5);
+            camiones.add(camion);
+        }
 
-        int bestAnt;
-        double bestFit;
+        //CAMIONES TIPO D
+        for(int i=0; i<tipod; i++){
+            //Inicializamos con valores fijos para todos
+            Ant camion = new Ant(5, 25,  mapa1.getPlantaPrincipal()[0], mapa1.getPlantaPrincipal()[1], 50, 1, 2.5);
+            camiones.add(camion);
+        }
+
         //Probar despues con las n mejores hormigas por ciclo
         //int nBest = (int) Math.ceil((double) k/2);
 
         Ant camion = camiones.get(0);
         int [] plantaPrincipal = mapa1.getPlantaPrincipal();
-        ACSAlgorithm solucion = new ACSAlgorithm(numAlmacenes, numOrders, plantaPrincipal);
+
+        ACSAlgorithm solucion = new ACSAlgorithm(numAlmacenes, numOrders, plantaPrincipal, 24);
         //System.out.println("Pedidos atendidos: "+ highestNum);
 
+        start = System.currentTimeMillis();
         ArrayList<Ant> secuencia = solucion.findSolution(camiones, orders, mapa1, cycles, steps, k, 0.3);
+        end = System.currentTimeMillis();
 
         for(int l = 0; l < k; l++){
             camion = secuencia.get(l);
@@ -103,12 +133,34 @@ public class Main {
                  ) {
                 System.out.print("(" + x[0] + "," + x[1] + ") -> ");
             }
+
+            System.out.println(" |");
+
+            for (double x:
+                 camion.getBestSolutionGLP()){
+                System.out.print("(" + x +  ") -> ");
+            }
+
             System.out.println(" |");
             camion.printSolution(mapa1,(char) (l + '@') );
             //mapa1.insertSolution(camion, (char) (l + '@'));
             //mapa1.printMap();
 
         }
+
+        if(solucion.getHighestNum() != numOrders){
+            System.out.println("COLAPSO LOGISTICO, se atendieron "+solucion.getHighestNum()+" pedidos de "+numOrders);
+        }
+
+        /*System.out.println("Tiempo de inicio: "+ start);
+        System.out.println("Tiempo fin: "+ end);*/
+        System.out.println("Tiempo de ejecucion: "+ (end-start));
+
+        System.out.println("El mejor fitness conseguido fue de " + solucion.getBestFitness());
+
+        data.write((end-start) + "," + solucion.getBestFitness());
+
+        data.close();
 
         //mapa1.printMap();
 
