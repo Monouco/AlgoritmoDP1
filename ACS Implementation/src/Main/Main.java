@@ -22,9 +22,9 @@ public class Main {
         long start, end;
         //Lectura de archivo e inicializacion del mapa
         Map mapa1 = new Map(50, 70);
-        DepositGLP principal = new DepositGLP(10, 8, 100);
-        DepositGLP almacenNorte = new DepositGLP(40, 45, 160);
-        DepositGLP alamacenEste = new DepositGLP(60, 5, 160);
+        DepositGLP principal = new DepositGLP(12, 8, 100);
+        DepositGLP almacenNorte = new DepositGLP(42, 42, 160);
+        DepositGLP alamacenEste = new DepositGLP(63, 3, 160);
 
         mapa1.addDeposit(principal);
         mapa1.addDeposit(almacenNorte);
