@@ -168,6 +168,22 @@ public class Ant {
         this.fuelConsumption = fuelConsumption;
     }
 
+    public double getAntWeight() {
+        return antWeight;
+    }
+
+    public void setAntWeight(double antWeight) {
+        this.antWeight = antWeight;
+    }
+
+    public double getGlpWeight() {
+        return glpWeight;
+    }
+
+    public void setGlpWeight(double glpWeight) {
+        this.glpWeight = glpWeight;
+    }
+
     public void changeSolution(){
         bestRoute = route;
         bestSolution = solution;

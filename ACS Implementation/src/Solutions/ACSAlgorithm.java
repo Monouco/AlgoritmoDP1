@@ -179,7 +179,7 @@ public class ACSAlgorithm {
             fitnessCur = 0;
             bestAnt = 0;
             bestFit = 0;
-            //En otro momento hare lo de la wea de A*
+            //En otro momento hare lo de A*
             for (int l = 0; l < k; l++) {
                 camion = camiones.get(l);
                 ordenAnterior = camion.getLastSolution(numAlmacenes);
@@ -193,7 +193,7 @@ public class ACSAlgorithm {
                         coordenate[1] = yIni;
                         camion.addRoute(coordenate);
                     } else {
-                        //Se encuentra en una planta, verificar
+                        //Se encuentra en una planta, verificar (esto no puede suceder)
                         xIni = mapa1.getPlantaPrincipal()[0];
                         yIni = mapa1.getPlantaPrincipal()[1];
                     }
@@ -250,6 +250,14 @@ public class ACSAlgorithm {
             }
 
         }
+
+        //Procederemos a generar la nueva solucion utilizando el algoritmo A*
+        for (int l =0; l < k; l++){
+            camion = camiones.get(l);
+            ruta = reCalcBestSolution(camion,ordenes,depositos,aStar);
+            camion.setBestRoute(ruta);
+        }
+
         this.bestFitness = globalFitness;
         return camiones;
     }
@@ -459,6 +467,88 @@ public class ACSAlgorithm {
             }
             x = p;
         }
+    }
+
+    private ArrayList<int[]> reCalcBestSolution(Ant camion, ArrayList<Order> ordenes, ArrayList<DepositGLP> depositos, AstarSearch aStar){
+        int ordenAnterior = -1-this.numAlmacenes;
+        ArrayList<int[]> ruta = new ArrayList<>();
+        ArrayList<int[]> rutaSol = new ArrayList<>();
+        int [] coordenate;
+        int xIni, yIni, xDes, yDes;
+        Order curOrden, lastOrden;
+        DepositGLP deposito;
+
+        for (int siguienteOrden :
+        camion.getBestSolution()) {
+
+                if (siguienteOrden >= 0) {
+                    //Obteniendo la orden
+                    curOrden = ordenes.get(siguienteOrden);
+
+                    xDes = curOrden.getDesX();
+                    yDes = curOrden.getDesY();
+
+                } else {
+                    //obtenemos los destinos al almacen
+                    deposito = depositos.get(siguienteOrden + numAlmacenes);
+                    xDes = deposito.getxPos();
+                    yDes = deposito.getyPos();
+
+                }
+
+                //Se encuentra en la posicion inicial, no ha salido
+                if (ordenAnterior < 0) {
+                    if (ordenAnterior == -1 - numAlmacenes) {
+                        xIni = camion.getxPos();
+                        yIni = camion.getyPos();
+                        coordenate = new int[2];
+                        coordenate[0] = xIni;
+                        coordenate[1] = yIni;
+                        rutaSol.add(coordenate);
+                    } else {//esta en un deposito
+                        deposito = depositos.get(ordenAnterior + numAlmacenes);
+                        xIni = deposito.getxPos();
+                        yIni = deposito.getyPos();
+                    }
+                } else {
+                    lastOrden = ordenes.get(ordenAnterior);
+                    xIni = lastOrden.getDesX();
+                    yIni = lastOrden.getDesY();
+                }
+
+                //Recordar hacer esto con A*
+                ruta = aStar.astar_search(new int[]{xIni, yIni}, new int[]{xDes, yDes});
+                //Calculamos el costo de petroleo por hacer esta ruta
+                coordenate = new int[3];
+                coordenate[0] = ruta.get(0)[0];
+                coordenate[1] = ruta.get(0)[1];
+                coordenate[2] = ordenAnterior;
+
+                ruta.set(0, coordenate);
+                rutaSol.addAll(ruta);
+                ordenAnterior = siguienteOrden;
+        }
+
+        //Para completar agregamos la ruta de vuelta al almacen
+        if (ordenAnterior < 0) {
+                xIni = camion.getxPos();
+                yIni = camion.getyPos();
+                coordenate = new int[2];
+                coordenate[0] = xIni;
+                coordenate[1] = yIni;
+                rutaSol.add(coordenate);
+        } else {
+            lastOrden = ordenes.get(ordenAnterior);
+            xIni = lastOrden.getDesX();
+            yIni = lastOrden.getDesY();
+        }
+        //Posiciones del almacen principal
+        xDes = depositos.get(0).getxPos();
+        yDes = depositos.get(0).getyPos();
+        ruta = aStar.astar_search(new int[]{xIni, yIni}, new int[]{xDes, yDes});
+        rutaSol.addAll(ruta);
+
+        return rutaSol;
     }
 
     public int getHighestNum(){

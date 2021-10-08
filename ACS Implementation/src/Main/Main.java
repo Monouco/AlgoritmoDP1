@@ -111,54 +111,65 @@ public class Main {
         Ant camion = camiones.get(0);
         int [] plantaPrincipal = mapa1.getPlantaPrincipal();
 
-        ACSAlgorithm solucion = new ACSAlgorithm(numAlmacenes, numOrders, plantaPrincipal, 24);
-        //System.out.println("Pedidos atendidos: "+ highestNum);
+        for(int n = 0; n < 100; n++) {
 
-        start = System.currentTimeMillis();
-        ArrayList<Ant> secuencia = solucion.findSolution(camiones, orders, mapa1, cycles, steps, k, 0.3);
-        end = System.currentTimeMillis();
-
-        for(int l = 0; l < k; l++){
-            camion = secuencia.get(l);
-            System.out.println("Camion: "+ l);
-            for (int pedido:
-                    camion.getBestSolution()
-                 ) {
-                System.out.print(pedido + " -> ");
-            }
-            System.out.println(" |");
-
-            for (int [] x:
-                    camion.getBestRoute()
-                 ) {
-                System.out.print("(" + x[0] + "," + x[1] + ") -> ");
+            ArrayList<Ant> secuencia = new ArrayList<>();
+            for(Ant a :
+                camiones){
+                Ant ant =  new Ant(a.getCapacity(),a.getFuelCapacity(),a.getxPos(),a.getyPos(),a.getVelocity(),a.getAntWeight(),a.getGlpWeight());
+                secuencia.add(ant);
             }
 
-            System.out.println(" |");
+            ACSAlgorithm solucion = new ACSAlgorithm(numAlmacenes, numOrders, plantaPrincipal, 24);
+            //System.out.println("Pedidos atendidos: "+ highestNum);
 
-            for (double x:
-                 camion.getBestSolutionGLP()){
-                System.out.print("(" + x +  ") -> ");
+            start = System.currentTimeMillis();
+            secuencia = solucion.findSolution(secuencia, orders, mapa1, cycles, steps, k, 0.3);
+            end = System.currentTimeMillis();
+/*
+            for (int l = 0; l < k; l++) {
+                camion = secuencia.get(l);
+                System.out.println("Camion: " + l);
+                for (int pedido :
+                        camion.getBestSolution()
+                ) {
+                    System.out.print(pedido + " -> ");
+                }
+                System.out.println(" |");
+
+                for (int[] x :
+                        camion.getBestRoute()
+                ) {
+                    System.out.print("(" + x[0] + "," + x[1] + ") -> ");
+                }
+
+                System.out.println(" |");
+
+                for (double x :
+                        camion.getBestSolutionGLP()) {
+                    System.out.print("(" + x + ") -> ");
+                }
+
+                System.out.println(" |");
+                camion.printSolution(mapa1, (char) (l + '@'));
+                //mapa1.insertSolution(camion, (char) (l + '@'));
+                //mapa1.printMap();
+
+            }*/
+
+            if (solucion.getHighestNum() != numOrders) {
+                System.out.println("COLAPSO LOGISTICO, se atendieron " + solucion.getHighestNum() + " pedidos de " + numOrders);
             }
-
-            System.out.println(" |");
-            camion.printSolution(mapa1,(char) (l + '@') );
-            //mapa1.insertSolution(camion, (char) (l + '@'));
-            //mapa1.printMap();
-
-        }
-
-        if(solucion.getHighestNum() != numOrders){
-            System.out.println("COLAPSO LOGISTICO, se atendieron "+solucion.getHighestNum()+" pedidos de "+numOrders);
-        }
 
         /*System.out.println("Tiempo de inicio: "+ start);
-        System.out.println("Tiempo fin: "+ end);*/
-        System.out.println("Tiempo de ejecucion: "+ (end-start));
+        System.out.println("Tiempo fin: "+ end);
+            System.out.println("Tiempo de ejecucion: " + (end - start));
 
-        System.out.println("El mejor fitness conseguido fue de " + solucion.getBestFitness());
+            System.out.println("El mejor fitness conseguido fue de " + solucion.getBestFitness());*/
 
-        data.write((end-start) + "," + solucion.getBestFitness());
+            data.write((end - start) + "," + solucion.getBestFitness()+"\n");
+
+        }
 
         data.close();
 
